@@ -1,4 +1,6 @@
-export const cities = {
+import * as atlas from 'azure-maps-control'
+
+export const cities: atlas.data.FeatureCollection = {
   type: "FeatureCollection",
   features: [
     {

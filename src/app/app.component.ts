@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import * as atlas from 'azure-maps-control'
+import { Shape } from 'azure-maps-control';
 import { cities } from './data/Steden';
 import { AzureMapService } from './services/azure-map.service';
 
@@ -26,6 +27,7 @@ class Coordinate {
 export class AppComponent implements AfterViewInit {
   title = 'TravelDistanceMatrix';
   map!: atlas.Map
+  popupTemplate = '<div>{Name}</div>';
 
 
   constructor(private mapsService: AzureMapService) {}
@@ -63,11 +65,36 @@ export class AppComponent implements AfterViewInit {
 
     var citySource = new atlas.source.DataSource();
     this.map.sources.add(citySource);
-
     citySource.add(cities);
 
-    this.map.layers.add(new atlas.layer.SymbolLayer(citySource))
+    var cityLayer = new atlas.layer.SymbolLayer(citySource);
 
+    this.map.layers.add(cityLayer)
+
+    let popup = new atlas.Popup({
+      pixelOffset: [0, -18],
+      closeButton: false
+    });
+
+    this.map.events.add('mouseover', cityLayer, (e) => {
+      if(e.shapes && e.shapes.length > 0) {
+        var content, coordinate;
+        var properties = (<Shape>e.shapes[0]).getProperties();
+        content = this.popupTemplate.replace(/{Name}/g, properties.Name);
+        coordinate = (<Shape>e.shapes[0]).getCoordinates();
+
+        popup.setOptions({
+          //Update the content of the popup.
+          content: content,
+
+          //Update the popup's position with the symbol's coordinate.
+          position: <atlas.data.Position>coordinate
+
+        });
+        //Open the popup.
+        popup.open(this.map);
+      }
+    })
 
     console.log(this.map)
   }
